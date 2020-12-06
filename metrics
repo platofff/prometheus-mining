@@ -25,7 +25,7 @@ trm() {
 hashrate{host=\"$1\"} 0"
 		return -1
 	fi
-	echo $resp
+	export $resp
 	for (( i=0; i<$Count; i++ ))
 	do
         	export `echo -n 'gpu|'$i | nc $1 $2 | sed 's/ //g; s/,/\n/g' | grep '^Accepted\|^Rejected\|Temperature\|FanPercent\|MHS30s\|HardwareErrors'`

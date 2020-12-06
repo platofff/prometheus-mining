@@ -21,7 +21,8 @@ trm() {
 	resp=`echo -n 'summary+devdetails+gpucount' | nc $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
 	if [ -z "$resp" ]
 	then
-		echo "uptime{host=\"$1\"} 0"
+		echo "uptime{host=\"$1\"} 0
+hashrate{host=\"$1\"} 0"
 		return -1
 	fi
 	echo $resp
@@ -44,8 +45,13 @@ t-rex() {
 	stats=( `echo $resp | jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute] | @tsv'` )
 	shares=( `echo $resp | jq -r '.stat_by_gpu[] | [.accepted_count, .rejected_count] | @tsv'` )
 	uptime=`echo $resp | jq '.uptime'`
-	
-	[ -z "$uptime" ] && uptime=0
+
+	if [ -z "$uptime" ]
+	then
+		echo "uptime{host=\"$1\"} 0
+hashrate{host=\"$1\"} 0"
+		return -1
+	fi
 	echo "uptime{host=\"$1\"} $uptime"
 	while [ "$shares" != "" ]
 	do
@@ -62,13 +68,17 @@ hashrate$l $(sed 's/..$/.&/' <<< $(( ${gpu[3]} / 10000 )))"
 }
 
 lolminer() {
-	stats=( `curl -s http://$1:$2/summary | jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv'` )
+	resp=`curl -s http://$1:$2/summary`
+	stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
+	uptime=`jq '.Session | .Uptime' <<< $resp`
 	if [ -z "$stats" ]
 	then
 		echo "uptime{host=\"$1\"} 0"
+		echo "hashrate{host=\"$1\"} 0"
 		return -1
-	fi 
-	
+	fi
+	echo "uptime{host=\"$1\"} $uptime"
+
 	while [ "$stats" != "" ]
 	do
 		gpu=( "${stats[@]:0:6}" )
@@ -93,7 +103,7 @@ echo '# TYPE accepted counter
 # TYPE fan gauge
 # TYPE hashrate summary
 # TYPE hw counter
-# TYPE uptime counter'
+# TYPE uptime gauge'
 
 for rig in "${RIGS[@]}"
 do

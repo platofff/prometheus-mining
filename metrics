@@ -42,9 +42,9 @@ hw$l $HardwareErrors"
 
 t-rex() {
 	resp=`curl -s http://$1:$2/summary`
-	stats=( `echo $resp | jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute] | @tsv'` )
-	shares=( `echo $resp | jq -r '.stat_by_gpu[] | [.accepted_count, .rejected_count] | @tsv'` )
-	uptime=`echo $resp | jq '.uptime'`
+	stats=( `jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute] | @tsv' <<< $resp` )
+	shares=( `jq -r '.stat_by_gpu[] | [.accepted_count, .rejected_count] | @tsv' <<< $resp` )
+	uptime=`jq '.uptime' <<< $resp`
 
 	if [ -z "$uptime" ]
 	then

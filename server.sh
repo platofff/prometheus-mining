@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 declare -A MINER_PORTS
 MINER_PORTS['trm']='4028'
 MINER_PORTS['t-rex']='4067'
+MINER_PORTS['lolminer']='4068'
 
 check_command() {
 	if ! command -v $1 &> /dev/null

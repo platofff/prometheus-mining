@@ -18,12 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '
 
 trm() {
-	export `echo -n 'summary+devdetails+gpucount' | nc $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
-	if [ -z "$Count" ]
+	resp=`echo -n 'summary+devdetails+gpucount' | nc $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
+	if [ -z "$resp" ]
 	then
 		echo "uptime{host=\"$1\"} 0"
 		return -1
 	fi
+	echo $resp
 	for (( i=0; i<$Count; i++ ))
 	do
         	export `echo -n 'gpu|'$i | nc $1 $2 | sed 's/ //g; s/,/\n/g' | grep '^Accepted\|^Rejected\|Temperature\|FanPercent\|MHS30s\|HardwareErrors'`
@@ -39,11 +40,12 @@ hw$l $HardwareErrors"
 }
 
 t-rex() {
-	resp=`curl -s -o - http://$1:$2/summary`
+	resp=`curl -s http://$1:$2/summary`
 	stats=( `echo $resp | jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute] | @tsv'` )
 	shares=( `echo $resp | jq -r '.stat_by_gpu[] | [.accepted_count, .rejected_count] | @tsv'` )
 	uptime=`echo $resp | jq '.uptime'`
-
+	
+	[ -z "$uptime" ] && uptime=0
 	echo "uptime{host=\"$1\"} $uptime"
 	while [ "$shares" != "" ]
 	do
@@ -56,6 +58,27 @@ fan$l ${gpu[1]}
 hashrate$l $(sed 's/..$/.&/' <<< $(( ${gpu[3]} / 10000 )))"
 		stats=( "${stats[@]:4}" )
 		shares=( "${shares[@]:2}" )
+	done
+}
+
+lolminer() {
+	stats=( `curl -s http://$1:$2/summary | jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv'` )
+	if [ -z "$stats" ]
+	then
+		echo "uptime{host=\"$1\"} 0"
+		return -1
+	fi 
+	
+	while [ "$stats" != "" ]
+	do
+		gpu=( "${stats[@]:0:6}" )
+		l="{gpu=\"${gpu[0]}\" host=\"$1\"}"
+		echo "accepted$l ${gpu[4]}
+temperature$l ${gpu[2]}
+fan$l ${gpu[1]}
+hashrate$l ${gpu[3]}
+hw$l ${gpu[5]}"
+		stats=( "${stats[@]:6}" )
 	done
 }
 

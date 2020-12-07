@@ -41,6 +41,7 @@ check_command lsof
 
 if [ ! -f config ]
 then
+        rm rigsoffline 2> /dev/null
 	echo '"config" file does not exists, trying to find rigs in your subnets...'
         subnets=( `ip -o -f inet addr show | awk '/scope global/ {print $4}'` )
 	for miner in "${!MINER_PORTS[@]}"

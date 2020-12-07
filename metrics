@@ -19,12 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 trm() {
 	resp=`echo -n 'summary+devdetails+gpucount' | nc $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
-	if [ -z "$resp" ]
-	then
-		echo "uptime{host=\"$1\"} 0
-hashrate{host=\"$1\"} 0"
-		return -1
-	fi
+	[ -z "$resp" ] && return -1
 	export $resp
 	for (( i=0; i<$Count; i++ ))
 	do
@@ -46,12 +41,7 @@ t-rex() {
 	shares=( `jq -r '.stat_by_gpu[] | [.accepted_count, .rejected_count] | @tsv' <<< $resp` )
 	uptime=`jq '.uptime' <<< $resp`
 
-	if [ -z "$uptime" ]
-	then
-		echo "uptime{host=\"$1\"} 0
-hashrate{host=\"$1\"} 0"
-		return -1
-	fi
+	[ -z "$uptime" ] && return -1
 	echo "uptime{host=\"$1\"} $uptime"
 	while [ "$shares" != "" ]
 	do
@@ -71,12 +61,7 @@ lolminer() {
 	resp=`curl -s http://$1:$2/summary`
 	stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
 	uptime=`jq '.Session | .Uptime' <<< $resp`
-	if [ -z "$stats" ]
-	then
-		echo "uptime{host=\"$1\"} 0"
-		echo "hashrate{host=\"$1\"} 0"
-		return -1
-	fi
+	[ -z "$stats" ] && return -1
 	echo "uptime{host=\"$1\"} $uptime"
 
 	while [ "$stats" != "" ]

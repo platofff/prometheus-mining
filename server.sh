@@ -61,6 +61,22 @@ then
 	cat config
 fi
 
+if [ ! -f rigsoffline ]
+then
+	echo '"rigsoffline" file not found. Fetching stats from all miners.'
+	resp=`./metrics | sed -r 's/( *[0-9])+$//; s/([0-9][0-9]\.)+$//; s/ $|$/ 0/; /^#.*.|Content|^ 0/d'`
+
+	source config
+	RIGS=( `sed 's/=.*//g' config` )
+
+	for r in "${RIGS[@]}"
+	do
+        	rig=$r[@]
+        	rig=( ${!rig} )
+        	echo "${r}offline='`grep ${rig[1]} <<< $resp`'" >> rigsoffline
+	done
+fi
+
 PORT=$1
 [ -z "$PORT" ] && PORT=8080
 if [ ! -z "$(lsof -i:$PORT)" ]

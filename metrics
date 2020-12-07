@@ -78,6 +78,7 @@ hw$l ${gpu[5]}"
 }
 
 source config
+source rigsoffline
 RIGS=( `sed 's/=.*//g' config` )
 
 echo 'Content-type: text/plain; version=0.0.4'
@@ -93,5 +94,9 @@ echo '# TYPE accepted counter
 for rig in "${RIGS[@]}"
 do
 	command=$rig[@]
-	${!command}
+	${!command} ||
+	(
+		offline=${rig}offline
+		sed 's/ /\n/3;P;D' <<< ${!offline}
+	)
 done

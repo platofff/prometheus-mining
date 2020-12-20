@@ -8,5 +8,6 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
+    isDefault: true
     url: http://172.18.0.4:9090
     editable: true

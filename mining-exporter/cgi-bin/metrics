@@ -1,0 +1,102 @@
+#!/bin/bash
+: '
+prometheus-mining - Prometheus exporter for some mining software
+Copyright (C) 2020 platofff
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'
+
+trm() {
+	resp=`echo -n 'summary+devdetails+gpucount' | nc $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
+	[ -z "$resp" ] && return -1
+	export $resp
+	for (( i=0; i<$Count; i++ ))
+	do
+        	export `echo -n 'gpu|'$i | nc $1 $2 | sed 's/ //g; s/,/\n/g' | grep '^Accepted\|^Rejected\|Temperature\|FanPercent\|MHS30s\|HardwareErrors'`
+		l="{gpu=\"$i\" host=\"$1\"}"
+        	echo "accepted$l $Accepted
+rejected$l $Rejected
+temperature$l $Temperature
+fan$l $FanPercent
+hashrate$l $MHS30s
+hw$l $HardwareErrors"
+	done
+	echo "uptime{host=\"$1\"} $Elapsed"
+}
+
+t-rex() {
+	resp=`curl -s http://$1:$2/summary`
+	stats=( `jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute] | @tsv' <<< $resp` )
+	shares=( `jq -r '.stat_by_gpu[] | [.accepted_count, .rejected_count] | @tsv' <<< $resp` )
+	uptime=`jq '.uptime' <<< $resp`
+
+	[ -z "$uptime" ] && return -1
+	echo "uptime{host=\"$1\"} $uptime"
+	while [ "$shares" != "" ]
+	do
+		gpu=( "${stats[@]:0:4}" "${shares[@]:0:2}" )
+		l="{gpu=\"${gpu[0]}\" host=\"$1\"}"
+		echo "accepted$l ${gpu[4]}
+rejected$l ${gpu[5]}
+temperature$l ${gpu[2]}
+fan$l ${gpu[1]}
+hashrate$l $(sed 's/..$/.&/' <<< $(( ${gpu[3]} / 10000 )))"
+		stats=( "${stats[@]:4}" )
+		shares=( "${shares[@]:2}" )
+	done
+}
+
+lolminer() {
+	resp=`curl -s http://$1:$2/summary`
+	stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
+	uptime=`jq '.Session | .Uptime' <<< $resp`
+	[ -z "$stats" ] && return -1
+	echo "uptime{host=\"$1\"} $uptime"
+
+	while [ "$stats" != "" ]
+	do
+		gpu=( "${stats[@]:0:6}" )
+		l="{gpu=\"${gpu[0]}\" host=\"$1\"}"
+		echo "accepted$l ${gpu[4]}
+temperature$l ${gpu[2]}
+fan$l ${gpu[1]}
+hashrate$l ${gpu[3]}
+hw$l ${gpu[5]}"
+		stats=( "${stats[@]:6}" )
+	done
+}
+
+source ../config
+source ../rigsoffline
+RIGS=( `sed 's/=.*//g' ../config` )
+
+echo 'Content-type: text/plain; version=0.0.4'
+echo ''
+echo '# TYPE accepted counter
+# TYPE rejected counter
+# TYPE temperature gauge
+# TYPE fan gauge
+# TYPE hashrate summary
+# TYPE hw counter
+# TYPE uptime gauge'
+
+for rig in "${RIGS[@]}"
+do
+	command=$rig[@]
+	${!command} ||
+	(
+		offline=${rig}offline
+		sed 's/ /\n/3;P;D' <<< ${!offline}
+	)
+done

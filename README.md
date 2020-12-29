@@ -12,11 +12,23 @@ Run miners with following params:
 #### Warning
 If your local subnet is other than 192.168.1.1/24 you must change it in the top of the `mining-exporter/server.sh` file 
 
-Run on your server:
+#### Without Telegram alerts
 ```
 docker-compose -f docker-compose.yml up --build
 ```
-And open `http://<server address>:3000/` in your browser.
+
+#### With Telegram alerts
+Create Telegram bot (write `@botfather`) and get your user ID (write `@userinfobot`). For details: https://github.com/metalmatze/alertmanager-bot
+```
+cp alertmanager-bot.sh.example alertmanager-bot.sh
+```
+Then open `alertmanager-bot.sh` and configure it.
+```
+docker-compose -f docker-compose-alertmanager-bot.yml up --build
+```
+
+
+Finally open `http://<server address>:3000/` in your browser.
 After login to Grafana you should import json dashboards from `dashboards` dir.
 
 #### TODO

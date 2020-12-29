@@ -1,3 +1,0 @@
-[submodule "alertmanager-bot"]
-	path = alertmanager-bot
-	url = https://github.com/metalmatze/alertmanager-bot

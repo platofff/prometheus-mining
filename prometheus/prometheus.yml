@@ -1,0 +1,18 @@
+scrape_configs:
+  - job_name: 'miner'
+    static_configs:
+      - targets: ['172.18.0.1:8080']
+
+global:
+  scrape_interval: 2m
+  evaluation_interval: 4m
+  scrape_timeout: 2m
+
+alerting:
+ alertmanagers:
+   - static_configs:
+     - targets:
+       - 172.18.0.5:9093
+
+rule_files:
+  - "alert.rules"

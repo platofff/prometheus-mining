@@ -1,0 +1,4 @@
+#!/bin/sh
+alertmanager-bot --telegram.token=xxx \
+--telegram.admin=xxx \
+--telegram.admin=xxx

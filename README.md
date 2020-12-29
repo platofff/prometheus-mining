@@ -4,11 +4,10 @@
 I can help with the setup inexpensively. Write me in Telegram: `@nouveau_nvc0`.
 ### Deploying
 Run miners with following params:
-`Teamredminer`: `--api_listen=0.0.0.0:4028`
 
-`Lolminer`: `--apiport 4069`
-
-`T-Rex`: `--api-bind-http 0.0.0.0:4067`
+- Teamredminer: `--api_listen=0.0.0.0:4028`
+- Lolminer: `--apiport 4069`
+- T-Rex: `--api-bind-http 0.0.0.0:4067`
 
 #### Warning
 If your local subnet is other than 192.168.1.1/24 you must change it in the top of the `mining-exporter/server.sh` file 

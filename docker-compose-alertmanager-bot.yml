@@ -39,6 +39,39 @@ services:
     network_mode: host
     restart: always
 
+  alertmanager:
+    image: prom/alertmanager
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/:ro
+    networks:
+      back:
+        ipv4_address: 172.18.0.5
+    restart: always
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    depends_on:
+    - prometheus
+
+  alertmanager-bot:
+    image: metalmatze/alertmanager-bot:0.4.2
+    container_name: alertmanager-bot
+    networks:
+      back:
+        ipv4_address: 172.18.0.6
+      front:
+    restart: always
+    environment:
+      ALERTMANAGER_URL: http://172.18.0.5:9093
+      STORE: bolt
+      BOLT_PATH: /data/bot.db
+      TEMPLATE_PATHS: /templates/default.tmpl
+    volumes:
+    - alertmanager-bot_data:/data
+    - ./alertmanager-bot.sh:/start.sh
+    entrypoint:
+    - /start.sh
+
 networks:
   back:
     driver: bridge
@@ -54,4 +87,4 @@ volumes:
   grafana_var_lib:
   grafana_etc:
   exporter_data:
-  
+  alertmanager-bot_data:  

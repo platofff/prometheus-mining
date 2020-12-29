@@ -1,0 +1,10 @@
+groups:
+- name: mining
+  rules:
+  - alert: "MinerDown"
+    expr: uptime == 0
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      message: "Miner {{ $labels.host }} down"

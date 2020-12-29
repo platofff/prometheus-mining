@@ -63,12 +63,4 @@ then
 	done
 fi
 
-PORT=$1
-[ -z "$PORT" ] && PORT=8080
-if [ ! -z "$(lsof -i:$PORT)" ]
-then
-	echo "Port $PORT is already in use, please specify an another port."
-	exit -2
-fi
-
 exec lighttpd -D -f /etc/lighttpd/lighttpd.conf

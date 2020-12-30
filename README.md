@@ -27,12 +27,8 @@ Then open `alertmanager-bot.sh` and configure it.
 docker-compose -f docker-compose-alertmanager-bot.yml up --build
 ```
 
-
 Finally open `http://<server address>:3000/` in your browser.
 After login to Grafana you should import json dashboards from `dashboards` dir.
-
-#### TODO
-- add XMPP/Telegram alerts via Prometheus Alertmanager
 
 #### If you want to buy me a coffee
 BTC: `bc1qtv30ctkad9h2gnupx9pa59cgvpatswx5z90phc`

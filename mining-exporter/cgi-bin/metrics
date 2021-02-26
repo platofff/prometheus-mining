@@ -24,7 +24,7 @@ trm() {
 	for (( i=0; i<$Count; i++ ))
 	do
         	export `echo -n 'gpu|'$i | nc $1 $2 | sed 's/ //g; s/,/\n/g' | grep '^Accepted\|^Rejected\|Temperature\|FanPercent\|MHS30s\|HardwareErrors'`
-		l="{gpu=\"$i\" host=\"$1\"}"
+		l="{gpu=\"$i\" host=\"$1:$2\"}"
         	echo "accepted$l $Accepted
 rejected$l $Rejected
 temperature$l $Temperature
@@ -32,7 +32,7 @@ fan$l $FanPercent
 hashrate$l $MHS30s
 hw$l $HardwareErrors"
 	done
-	echo "uptime{host=\"$1\"} $Elapsed"
+	echo "uptime{host=\"$1:$2\"} $Elapsed"
 }
 
 t-rex() {
@@ -42,11 +42,11 @@ t-rex() {
 	uptime=`jq '.uptime' <<< $resp`
 
 	[ -z "$uptime" ] && return -1
-	echo "uptime{host=\"$1\"} $uptime"
+	echo "uptime{host=\"$1:$2\"} $uptime"
 	while [ "$shares" != "" ]
 	do
 		gpu=( "${stats[@]:0:4}" "${shares[@]:0:2}" )
-		l="{gpu=\"${gpu[0]}\" host=\"$1\"}"
+		l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
 		echo "accepted$l ${gpu[4]}
 rejected$l ${gpu[5]}
 temperature$l ${gpu[2]}
@@ -62,12 +62,12 @@ lolminer() {
 	stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
 	uptime=`jq '.Session | .Uptime' <<< $resp`
 	[ -z "$stats" ] && return -1
-	echo "uptime{host=\"$1\"} $uptime"
+	echo "uptime{host=\"$1:$2\"} $uptime"
 
 	while [ "$stats" != "" ]
 	do
 		gpu=( "${stats[@]:0:6}" )
-		l="{gpu=\"${gpu[0]}\" host=\"$1\"}"
+		l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
 		echo "accepted$l ${gpu[4]}
 temperature$l ${gpu[2]}
 fan$l ${gpu[1]}

@@ -59,7 +59,7 @@ then
 	do
         	rig=$r[@]
         	rig=( ${!rig} )
-        	echo "${r}offline='`grep ${rig[1]} <<< $resp`'" >> rigsoffline
+        	echo "${r}offline='`grep ${rig[1]}:${rig[2]} <<< $resp`'" >> rigsoffline
 	done
 fi
 

@@ -46,6 +46,7 @@ t-rex() {
 	while [ "$shares" != "" ]
 	do
 		gpu=( "${stats[@]:0:4}" "${shares[@]:0:2}" )
+		[ "${#gpu[@]}" != "6" ] && break
 		l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
 		echo "accepted$l ${gpu[4]}
 rejected$l ${gpu[5]}

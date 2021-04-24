@@ -1,4 +1,4 @@
-## TRM, Lolminer, T-Rex mining monitoring based on Prometheus and Grafana
+## TRM, Lolminer, T-Rex, miners with EthMan-compatible API (Phoenix miner, Nanominer, Claymore's, etc.) monitoring based on Prometheus and Grafana
 ![](screenshot.png)
 ### TL;DR
 I can help with the setup inexpensively. Write me in Telegram: `@nouveau_nvc0`.
@@ -8,9 +8,22 @@ Run miners with following params:
 - Teamredminer: `--api_listen=0.0.0.0:4028`
 - Lolminer: `--apiport 4069`
 - T-Rex: `--api-bind-http 0.0.0.0:4067`
+- Claymore's ETH, Phoenix and Nanominer listen on `3333` port by default. For other miners EthMan-compatible API check the documentation
+- NVMiner (https://github.com/mhssamadani/Autolykos2_NV_Miner) listens on port `36207` by default
+
+#### Custom ports/Having issues with automated rig search
+If you are using ports different than default ones or the script cannot find all your miners you should create `mining-exporter/config` file. It's example content:
+```
+rig1=( trm 192.168.1.123 40281 )
+rig2=( t-rex 192.168.1.123 40671 )
+rig3=( lolminer 192.168.1.123 40691 )
+rig4=( ethman 192.168.1.123 33331 )
+rig5=( nvminer 192.168.1.123 36207 )
+```
+And then (re)build `prometheus-mining_exporter` container image using `docker-compose`.
 
 #### Warning
-If your local subnet is other than 192.168.1.1/24 you must change it in the top of the `mining-exporter/server.sh` file 
+If your local subnet is other than 192.168.1.1/24 and you are using automated rigs search you must change it in the top of the `mining-exporter/server.sh` file.
 
 #### Without Telegram alerts
 ```

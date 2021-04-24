@@ -21,6 +21,8 @@ declare -A MINER_PORTS
 MINER_PORTS['trm']='4028'
 MINER_PORTS['t-rex']='4067'
 MINER_PORTS['lolminer']='4069'
+MINER_PORTS['ethman']='3333'
+MINER_PORTS['nvminer']='36207'
 SUBNETS=( '192.168.1.1/24' )
 
 if [ ! -f config ]

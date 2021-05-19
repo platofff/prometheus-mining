@@ -22,6 +22,6 @@ then
 	echo 'RIGS environment variable is empty. Exiting.'
 	exit -1
 fi
-echo $RIGS > config
+sed 's/ rig/\nrig/g' <<< $RIGS > config
 
 exec lighttpd -D -f /etc/lighttpd/lighttpd.conf

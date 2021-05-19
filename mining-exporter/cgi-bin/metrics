@@ -119,7 +119,6 @@ rejected $l 0"
 }
 
 source ../config
-source ../rigsoffline
 RIGS=( `sed 's/=.*//g' ../config` )
 
 echo 'Content-type: text/plain; version=0.0.4'

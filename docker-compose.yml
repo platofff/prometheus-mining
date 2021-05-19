@@ -38,7 +38,7 @@ services:
     - exporter_data:/prometheus-mining
     network_mode: host
     environment:
-    - RIGS="${RIGS}"
+    - RIGS=${RIGS}
     restart: always
 
 networks:

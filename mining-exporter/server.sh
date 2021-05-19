@@ -1,7 +1,7 @@
 #!/bin/bash
 : '
 prometheus-mining - Prometheus exporter for some mining software
-Copyright (C) 2020 platofff
+Copyright (C) 2020-2021 platofff
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,52 +17,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '
 
-declare -A MINER_PORTS
-MINER_PORTS['trm']='4028'
-MINER_PORTS['t-rex']='4067'
-MINER_PORTS['lolminer']='4069'
-MINER_PORTS['ethman']='3333'
-MINER_PORTS['nvminer']='36207'
-SUBNETS=( '192.168.1.1/24' )
-
-if [ ! -f config ]
+if [ -z "$RIGS" ]
 then
-        rm rigsoffline 2> /dev/null
-	echo '"config" file does not exists, trying to find rigs in configured subnets...'
-	for miner in "${!MINER_PORTS[@]}"
-	do
-        	for s in "${SUBNETS[@]}"
-        	do
-			echo "Trying to find $miner miners in $s subnet..."
-                	hosts+=' '`nmap -oG - --open $s -p "${MINER_PORTS[$miner]}" | grep "${MINER_PORTS[$miner]}"/open | egrep -o "([0-9]{1,3}\.){3}[0-9]{1,3}"`
-        	done
-        	[ -z "$i" ] && i=1
-        	for host in $hosts
-        	do
-                	echo "rig$i=( $miner $host ${MINER_PORTS[$miner]} )" >> config
-                	i=$(( $i + 1 ))
-        	done
-		hosts=''
-	done
-	echo 'Found rigs:'
-	cat config || (echo 'No rigs found. Fill "config" file by yourself and try again.' && exit -1)
+	echo 'RIGS environment variable is empty. Exiting.'
+	exit -1
 fi
-
-if [ ! -f rigsoffline ]
-then
-	echo '"rigsoffline" file not found. Fetching stats from all miners.'
-	cd cgi-bin
-	resp=`./metrics | sed -r 's/( *[0-9])+$//; s/([0-9][0-9]\.)+$//; s/ $|$/ 0/; /^#.*.|Content|^ 0/d'`
-	cd ..
-	source config
-	RIGS=( `sed 's/=.*//g' config` )
-
-	for r in "${RIGS[@]}"
-	do
-        	rig=$r[@]
-        	rig=( ${!rig} )
-        	echo "${r}offline='`grep ${rig[1]}:${rig[2]} <<< $resp`'" >> rigsoffline
-	done
-fi
+echo $RIGS > config
 
 exec lighttpd -D -f /etc/lighttpd/lighttpd.conf

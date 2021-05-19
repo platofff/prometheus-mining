@@ -1,7 +1,7 @@
 #!/bin/bash
 : '
 prometheus-mining - Prometheus exporter for some mining software
-Copyright (C) 2020 platofff
+Copyright (C) 2020-2021 platofff
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -72,7 +72,8 @@ lolminer() {
 temperature$l ${gpu[2]}
 fan$l ${gpu[1]}
 hashrate$l ${gpu[3]}
-hw$l ${gpu[5]}"
+hw$l ${gpu[5]}
+rejected$l 0"
 		stats=( "${stats[@]:6}" )
 	done
 }
@@ -136,7 +137,12 @@ do
 	command=$rig[@]
 	${!command} ||
 	(
-		offline=${rig}offline
-		sed 's/ /\n/3;P;D' <<< ${!offline}
+		echo "${r}offline='uptime{host=\"${rig[1]}:${rig[2]}\"} 0
+accepted{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
+temperature{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
+fan{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
+hashrate{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
+hw{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
+rejected{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0"
 	)
 done

@@ -37,6 +37,8 @@ services:
     volumes:
     - exporter_data:/prometheus-mining
     network_mode: host
+    environment:
+      - RIGS="${RIGS}"
     restart: always
 
   alertmanager:

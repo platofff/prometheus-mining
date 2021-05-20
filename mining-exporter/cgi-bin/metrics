@@ -133,15 +133,17 @@ echo '# TYPE accepted counter
 
 for rig in "${RIGS[@]}"
 do
-	command=$rig[@]
-	${!command} ||
-	(
-		echo "${r}offline='uptime{host=\"${rig[1]}:${rig[2]}\"} 0
-accepted{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
-temperature{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
-fan{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
-hashrate{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
-hw{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0
-rejected{gpu="0" host=\"${rig[1]}:${rig[2]}\"} 0"
-	)
+        command=$rig[@]
+        ${!command} ||
+        (
+                rig=( ${!command} )
+                l="{gpu=\"0\" host=\"${rig[1]}:${rig[2]}\"}"
+                echo "uptime{host=\"${rig[1]}:${rig[2]}\"} 0
+accepted$l 0
+temperature$l 0
+fan$l 0
+hashrate$l 0
+hw$l 0
+rejected$l 0"
+        )
 done

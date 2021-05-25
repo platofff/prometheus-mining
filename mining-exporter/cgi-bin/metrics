@@ -83,6 +83,7 @@ ethman() {
 	hashrate=( ${stats[3]} )
 	shares=( ${stats[2]} )
 	tempfan=( ${stats[6]} )
+	[ -z "${shares[1]}" ] && return -1
 
 	echo "uptime{host=\"$1:$2\"} $(( stats[1] * 60 ))
 accepted{host=\"$1:$2\"} ${shares[1]}

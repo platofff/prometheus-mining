@@ -103,6 +103,7 @@ nvminer() {
 	resp=$(curl -s http://$1:$2 --max-time 10 || return -1)
 	uptime=`jq '.uptime' <<< $resp | sed 's/\"//g; s/.$//'`
 	[ -z "$uptime" ] && return -1
+	[ "$uptime" == "0" ] && uptime=1
 
 	echo "uptime{host=\"$1:$2\"} $(( uptime * 3600 ))"
 	readarray -t stats < <(jq -r '.devices[] | [.hashrate, .fan, .temperature] | @tsv' <<< $resp)

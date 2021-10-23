@@ -18,13 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '
 
 trm() {
-	resp=`echo -n 'summary+devdetails+gpucount' | nc -w 10 $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
+	local resp=`echo -n 'summary+devdetails+gpucount' | nc -w 10 $1 $2 | sed 's/,/\n/g; s/|//g' | grep '^Count\|^Elapsed'`
 	[ -z "$resp" ] && return -1
 	export $resp
 	for (( i=0; i<$Count; i++ ))
 	do
         	export `echo -n 'gpu|'$i | nc $1 $2 | sed 's/ //g; s/,/\n/g' | grep '^Accepted\|^Rejected\|Temperature\|FanPercent\|MHS30s\|HardwareErrors'`
-		l="{gpu=\"$i\" host=\"$1:$2\"}"
+		local l="{gpu=\"$i\" host=\"$1:$2\"}"
         	echo "accepted$l $Accepted
 rejected$l $Rejected
 temperature$l $Temperature
@@ -33,56 +33,58 @@ hashrate$l $MHS30s
 hw$l $HardwareErrors"
 	done
 	echo "uptime{host=\"$1:$2\"} $Elapsed"
+	unset Count Accepted Rejected Temperature FanPercent MHS30s HardwareErrors Elapsed
 }
 
 t-rex() {
-        resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
-        stats=( `jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute, .shares.accepted_count, .shares.invalid_count, .shares.rejected_count] | @tsv' <<< $resp` )
-        uptime=`jq '.uptime' <<< $resp`
+        local resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
+        local stats=( `jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute, .shares.accepted_count, .shares.invalid_count, .shares.rejected_count] | @tsv' <<< $resp` )
+        local uptime=`jq '.uptime' <<< $resp`
 
         [ -z "$uptime" ] && return -1
         echo "uptime{host=\"$1:$2\"} $uptime"
         while [ "$stats" != "" ]
         do
-                gpu=( "${stats[@]:0:7}" )
+                local gpu=( "${stats[@]:0:7}" )
                 [ "${#gpu[@]}" != "7" ] && break
-                l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
+                local l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
                 echo "accepted$l ${gpu[4]}
 hw$l ${gpu[5]}
 rejected$l ${gpu[6]}
 temperature$l ${gpu[2]}
 fan$l ${gpu[1]}
 hashrate$l $(sed 's/..$/.&/' <<< $(( ${gpu[3]} / 10000 )))"
-                stats=( "${stats[@]:7}" )
+                local stats=( "${stats[@]:7}" )
         done
 }
 
 lolminer() {
-	resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
-	stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
-	uptime=`jq '.Session | .Uptime' <<< $resp`
+	local resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
+	local stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
+	local uptime=`jq '.Session | .Uptime' <<< $resp`
 	[ -z "$stats" ] && return -1
 	echo "uptime{host=\"$1:$2\"} $uptime"
 
 	while [ "$stats" != "" ]
 	do
-		gpu=( "${stats[@]:0:6}" )
-		l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
+		local gpu=( "${stats[@]:0:6}" )
+		local l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
 		echo "accepted$l ${gpu[4]}
 temperature$l ${gpu[2]}
 fan$l ${gpu[1]}
 hashrate$l ${gpu[3]}
 hw$l ${gpu[5]}
 rejected$l 0"
-		stats=( "${stats[@]:6}" )
+		local stats=( "${stats[@]:6}" )
 	done
 }
 
 ethman() {
+	local stats
 	readarray -t stats < <(echo '{"method": "miner_getstat1", "jsonrpc": "2.0", "id": 0 }' | nc -w 10 $1 $2 | jq -c '.result[]' | sed 's/\"//g; s/\;/ /g')
-	hashrate=( ${stats[3]} )
-	shares=( ${stats[2]} )
-	tempfan=( ${stats[6]} )
+	local hashrate=( ${stats[3]} )
+	local shares=( ${stats[2]} )
+	local tempfan=( ${stats[6]} )
 	[ -z "${shares[1]}" ] && return -1
 
 	echo "uptime{host=\"$1:$2\"} $(( stats[1] * 60 ))
@@ -90,9 +92,9 @@ accepted{host=\"$1:$2\"} ${shares[1]}
 rejected{host=\"$1:$2\"} ${shares[2]}"
 	for (( i = 0; i < ${#hashrate[@]}; i++ ))
 	do
-		l="{gpu=\"$i\" host=\"$1:$2\"}"
-		temp=$(( i / 2 ))
-		fan=$(( temp + 1 ))
+		local l="{gpu=\"$i\" host=\"$1:$2\"}"
+		local temp=$(( i / 2 ))
+		local fan=$(( temp + 1 ))
 		echo "temperature$l ${tempfan[$temp]}
 fan$l ${tempfan[$fan]}
 hashrate$l $(sed 's/....$//; s/..$/.&/' <<< ${hashrate[$i]})"
@@ -100,18 +102,19 @@ hashrate$l $(sed 's/....$//; s/..$/.&/' <<< ${hashrate[$i]})"
 }
 
 nvminer() {
-	resp=$(curl -s http://$1:$2 --max-time 10 || return -1)
-	uptime=`jq '.uptime' <<< $resp | sed 's/\"//g; s/.$//'`
+	local resp=$(curl -s http://$1:$2 --max-time 10 || return -1)
+	local uptime=`jq '.uptime' <<< $resp | sed 's/\"//g; s/.$//'`
 	[ -z "$uptime" ] && return -1
 	[ "$uptime" == "0" ] && uptime=1
 
 	echo "uptime{host=\"$1:$2\"} $(( uptime * 3600 ))"
+	local stats
 	readarray -t stats < <(jq -r '.devices[] | [.hashrate, .fan, .temperature] | @tsv' <<< $resp)
 	for (( i = 0; i < ${#stats[@]}; i++ ))
 	do
-                gpu=( ${stats[$i]} )
+                local gpu=( ${stats[$i]} )
                 [ "${#gpu[@]}" != "3" ] && continue
-		l="{gpu=\"$i\" host=\"$1:$2\"}"
+		local l="{gpu=\"$i\" host=\"$1:$2\"}"
 		echo "temperature$l ${gpu[2]}
 fan$l ${gpu[1]}
 hashrate$l ${gpu[0]}
@@ -135,11 +138,11 @@ echo '# TYPE accepted counter
 
 for rig in "${RIGS[@]}"
 do
-        command=$rig[@]
+        local command=$rig[@]
         ${!command} ||
         (
-                rig=( ${!command} )
-                l="{gpu=\"0\" host=\"${rig[1]}:${rig[2]}\"}"
+                local rig=( ${!command} )
+                local l="{gpu=\"0\" host=\"${rig[1]}:${rig[2]}\"}"
                 echo "uptime{host=\"${rig[1]}:${rig[2]}\"} 0
 accepted$l 0
 temperature$l 0

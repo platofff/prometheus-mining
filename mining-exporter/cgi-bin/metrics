@@ -138,11 +138,11 @@ echo '# TYPE accepted counter
 
 for rig in "${RIGS[@]}"
 do
-        local command=$rig[@]
+        command=$rig[@]
         ${!command} ||
         (
-                local rig=( ${!command} )
-                local l="{gpu=\"0\" host=\"${rig[1]}:${rig[2]}\"}"
+                rig=( ${!command} )
+                l="{gpu=\"0\" host=\"${rig[1]}:${rig[2]}\"}"
                 echo "uptime{host=\"${rig[1]}:${rig[2]}\"} 0
 accepted$l 0
 temperature$l 0

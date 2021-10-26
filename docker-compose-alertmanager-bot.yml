@@ -89,4 +89,4 @@ volumes:
   grafana_var_lib:
   grafana_etc:
   exporter_data:
-  alertmanager-bot_data:  
+  alertmanager-bot_data:

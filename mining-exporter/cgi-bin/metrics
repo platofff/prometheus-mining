@@ -35,16 +35,16 @@ trm() {
 }
 
 t-rex() {
-        local resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
-        local stats=( `jq -r '.gpus[] | [.gpu_id, .fan_speed, .temperature, .hashrate_minute, .shares.accepted_count, .shares.invalid_count, .shares.rejected_count] | @tsv' <<< $resp` )
-        local uptime=`jq '.uptime' <<< $resp`
-
-        [ -z "$uptime" ] && return -1
-        echo "uptime{host=\"$1:$2\"} $uptime"
-        while [ "$stats" != "" ]
+	local resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
+	local tmp=( `jq '.uptime // empty, .gpu_total // empty' <<< $resp` )
+	[ "${#tmp[@]}" -eq 2 ] || return -1
+	local uptime=${tmp[0]}
+	local count=${tmp[1]}
+	local stats=( `jq '.gpus[] | .gpu_id // empty, .fan_speed // empty, .temperature // empty, .hashrate_minute // empty, .shares.accepted_count // empty, .shares.invalid_count // empty, .shares.rejected_count // empty' <<< $resp` )
+	[ "$(( ${#stats[@]} / count ))" -eq 7 ] || return -1
+	while [ "${#stats[@]}" -ne 0 ]
         do
                 local gpu=( "${stats[@]:0:7}" )
-                [ "${#gpu[@]}" != "7" ] && break
                 local l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
                 echo "accepted$l ${gpu[4]}
 hw$l ${gpu[5]}
@@ -52,8 +52,9 @@ rejected$l ${gpu[6]}
 temperature$l ${gpu[2]}
 fan$l ${gpu[1]}
 hashrate$l $(sed 's/..$/.&/' <<< $(( ${gpu[3]} / 10000 )))"
-                local stats=( "${stats[@]:7}" )
-        done
+                stats=( "${stats[@]:7}" )
+	done
+	echo "uptime{host=\"$1:$2\"} $uptime"
 }
 
 lolminer() {

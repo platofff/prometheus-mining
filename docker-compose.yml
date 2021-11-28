@@ -2,7 +2,6 @@ version: '2'
 services:
   prometheus:
     image: prom/prometheus
-    container_name: prometheus
     command:
     - --config.file=/etc/prometheus/prometheus.yml
     - --storage.tsdb.retention.size=1GB
@@ -10,14 +9,10 @@ services:
     - ./prometheus:/etc/prometheus:ro
     depends_on:
     - exporter
-    networks:
-      back:
-        ipv4_address: 172.18.0.4
     restart: always
 
   grafana:
     image: grafana/grafana
-    container_name: grafana
     ports:
       - "3000:3000"
     volumes:
@@ -26,29 +21,14 @@ services:
     - ./provisioning:/etc/grafana/provisioning
     depends_on:
     - prometheus
-    networks:
-      back:
-      front:
     restart: always
 
   exporter:
     container_name: exporter
     build: mining-exporter
-    network_mode: host
     environment:
     - RIGS=${RIGS}
     restart: always
-
-networks:
-  back:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: "172.18.0.0/24"
-        gateway: 172.18.0.1
-  front:
-    driver: bridge
 
 volumes:
   grafana_var_lib:

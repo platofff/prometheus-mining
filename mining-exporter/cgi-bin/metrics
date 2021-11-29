@@ -25,7 +25,7 @@ trm() {
         local result=()
         for (( i=0; i<$count; i++ ))
         do
-                local gpu=( `echo -n '{"command":"gpu","parameter":'$i'}' | nc -w 2 $1 $2 | jq '.GPU[0] | .Accepted // empty, .Rejected // empty, .Temperature // empty, ."Fan Percent" // empty, ."MHS 30s" // empty, ."Hardware Errors" // empty'` )
+                local gpu=( `echo -n '{"command":"gpu","parameter":"'$i'"}' | nc -w 2 $1 $2 | jq '.GPU[0] | .Accepted // empty, .Rejected // empty, .Temperature // empty, ."Fan Percent" // empty, ."MHS 30s" // empty, ."Hardware Errors" // empty'` )
                 local l="{gpu=\"$i\" host=\"$1:$2\"}"
                 [ "${#gpu[@]}" -eq 6 ] || return -1
                 result+=( "accepted$l ${gpu[0]}" "rejected$l ${gpu[1]}" "temperature$l ${gpu[2]}" "fan$l ${gpu[3]}" "hashrate$l ${gpu[4]}" "hw$l ${gpu[5]}" )

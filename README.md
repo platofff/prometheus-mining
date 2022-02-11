@@ -1,7 +1,7 @@
 ## TRM, Lolminer, T-Rex, miners with EthMan-compatible API (Phoenix miner, Nanominer, Claymore's, etc.) monitoring based on Prometheus and Grafana
 ![](screenshot.png)
 ### TL;DR
-I can help with the setup inexpensively. Write me in Telegram: `@nouveau_nvc0`.
+I can help with setting it up for a small sum. Message me on Telegram: `@nouveau_nvc0`.
 ### Deploying
 Run miners with following params:
 

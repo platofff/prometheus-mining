@@ -7,7 +7,7 @@ Run miners with following params:
 
 - Teamredminer: `--api_listen=0.0.0.0:4028`
 - Lolminer: `--apiport 4069`
-- T-Rex: `--api-bind-http 0.0.0.0:4067`
+- T-Rex: `--api-bind-http 0.0.0.0:4067` (in case you have set a password for T-Rex, pass it as the third parameter in the `RIGS` variable)
 - Claymore's ETH, Phoenix and Nanominer listen on `3333` port by default. For other miners EthMan-compatible API check the documentation
 - NVMiner (https://github.com/mhssamadani/Autolykos2_NV_Miner) listens on port `36207` by default
 
@@ -16,9 +16,10 @@ You must declare `RIGS` environment variable:
 ```
 RIGS='rig1=( trm 192.168.1.123 4028 )
 rig2=( t-rex 192.168.1.123 4067 )
-rig3=( lolminer 192.168.1.123 4069 )
-rig4=( ethman 192.168.1.123 3333 )
-rig5=( nvminer 192.168.1.123 36207 )'
+rig3=( t-rex 192.168.1.123 4067 yourApiPassword )
+rig4=( lolminer 192.168.1.123 4069 )
+rig5=( ethman 192.168.1.123 3333 )
+rig6=( nvminer 192.168.1.123 36207 )'
 ```
 
 #### Without Telegram alerts

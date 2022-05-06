@@ -76,7 +76,7 @@ hashrate$l ${gpu[3]}
 hw$l ${gpu[6]}
 rejected$l ${gpu[5]}"
 		local stats=( "${stats[@]:3}" )
-		local performance=( "${stats[@]:4}" )
+		local performance=( "${performance[@]:4}" )
 	done
 }
 

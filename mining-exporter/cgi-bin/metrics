@@ -59,22 +59,24 @@ hashrate$l $(sed 's/..$/.&/' <<< $(( ${gpu[3]} / 10000 )))"
 
 lolminer() {
 	local resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
-	local stats=( `jq -r '.GPUs[] | [.Index, ."Fan Speed (%)", ."Temp (deg C)", .Performance, .Session_Accepted, .Session_HWErr] | @tsv' <<< $resp` )
+	local stats=( `jq -r '.Workers[] | [.Index, .Fan_Speed, .Core_Temp] | @tsv' <<< $resp` )
+	local performance=( `jq -r '.Algorithms[] | select(.Algorithm=="Ethash") | [.Worker_Performance, .Worker_Accepted, .Worker_Rejected, .Worker_Errors] | transpose | .[] | @tsv' <<< $resp` )
 	local uptime=`jq '.Session | .Uptime' <<< $resp`
 	[ -z "$stats" ] && return -1
 	echo "uptime{host=\"$1:$2\"} $uptime"
 
 	while [ "$stats" != "" ]
 	do
-		local gpu=( "${stats[@]:0:6}" )
+		local gpu=( "${stats[@]:0:3}" "${performance[@]:0:4}" )
 		local l="{gpu=\"${gpu[0]}\" host=\"$1:$2\"}"
 		echo "accepted$l ${gpu[4]}
 temperature$l ${gpu[2]}
 fan$l ${gpu[1]}
 hashrate$l ${gpu[3]}
-hw$l ${gpu[5]}
-rejected$l 0"
-		local stats=( "${stats[@]:6}" )
+hw$l ${gpu[6]}
+rejected$l ${gpu[5]}"
+		local stats=( "${stats[@]:3}" )
+		local performance=( "${stats[@]:4}" )
 	done
 }
 

@@ -7,7 +7,7 @@ Run miners with following params:
 
 - Teamredminer: `--api_listen=0.0.0.0:4028`
 - Lolminer: `--apiport 4069`
-- T-Rex: `--api-bind-http 0.0.0.0:4067` (in case you have set a password for T-Rex, pass it as the third parameter in the `RIGS` variable)
+- T-Rex: `--api-read-only --api-bind-http 0.0.0.0:4067` (in case you have set a password for T-Rex, pass it as the third parameter in the `RIGS` variable)
 - Claymore's ETH, Phoenix and Nanominer listen on `3333` port by default. For other miners EthMan-compatible API check the documentation
 - NVMiner (https://github.com/mhssamadani/Autolykos2_NV_Miner) listens on port `36207` by default
 

@@ -35,7 +35,12 @@ trm() {
 }
 
 t-rex() {
-	local resp=`curl -s http://$1:$2/summary --max-time 10 || return -1`
+	local sid=""
+	if [ $# -eq 3 ]; then
+			sid=`curl -s "http://$1:$2/login?password=$3" | jq -r ".sid"`
+	fi
+
+	local resp=`curl -s http://$1:$2/summary?sid=$sid --max-time 10 || return -1`
 	local tmp=( `jq '.uptime // empty, .gpu_total // empty' <<< $resp` )
 	[ "${#tmp[@]}" -eq 2 ] || return -1
 	local uptime=${tmp[0]}
